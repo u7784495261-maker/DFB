@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#064b6b">
+<link rel="manifest" href="manifest.webmanifest">
+<title>🚒 Firehouse Roster</title>
+<style>
+:root{--nav:#a90000;--day:#b7f0ad;--night:#bfe9ff;--accent:#ffd21c;--text:#202020;--muted:#6b7b83}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:#f5f7f8}
+header{background:var(--nav);color:#fff;padding:18px 18px 14px;position:sticky;top:0;z-index:3}
+h1{margin:0;font-size:25px}.sub{opacity:.8;font-size:13px;margin-top:3px}
+.controls{display:flex;align-items:center;justify-content:space-between;padding:12px;background:white;position:sticky;top:75px;z-index:2;border-bottom:1px solid #ddd}
+button{border:1px solid #ccd4d8;background:white;border-radius:10px;padding:9px 13px;font-size:16px}.monthTitle{font-weight:700;font-size:19px}
+main{max-width:850px;margin:auto}.card{margin:12px;background:white;border-radius:14px;box-shadow:0 2px 10px #0000000d;padding:15px}
+.next{display:flex;justify-content:space-between;align-items:center}.next strong{font-size:19px}.pill{padding:7px 10px;border-radius:9px;font-weight:700}.daypill{background:var(--day)}.nightpill{background:var(--night)}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);background:white;margin:12px;border:1px solid #ddd;border-radius:12px;overflow:hidden}
+.dow{padding:9px 2px;text-align:center;font-weight:700;background:#eef2f4;font-size:12px}.cell{min-height:104px;border-top:1px solid #e1e5e7;border-right:1px solid #e1e5e7;padding:7px 5px;position:relative}.cell:nth-child(7n){border-right:0}
+.num{font-size:12px;font-weight:700;color:#64747c}.shift{margin-top:7px;border-radius:8px;padding:8px 4px;text-align:center;font-weight:700;font-size:12px}.shift small{display:block;font-weight:500;margin-top:3px}.day{background:var(--day)}.night{background:var(--night)}.today{outline:3px solid var(--accent);outline-offset:-3px}
+.off{color:#a2adb2}.legend{display:flex;gap:12px;justify-content:center;font-size:12px;margin:12px}.dot{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.editBtn{background:#064b6b;color:#fff;border:0;width:100%;margin-top:10px;font-weight:700}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}.modalBox{background:#fff;width:100%;max-width:600px;border-radius:18px 18px 0 0;padding:20px;box-shadow:0 -5px 25px #0003}
+.modalBox h2{margin:0 0 5px}.modalDate{color:var(--muted);margin-bottom:15px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:9px}.options button{font-weight:700;padding:13px}
+.opt-comp{background:#fff0c7}.opt-sick{background:#ffd9df}.opt-annual{background:#dce8ff}.opt-other{background:#eadcff}.opt-reset{background:#f0f0f0}
+.close{width:100%;margin-top:12px}
+.customShift{margin-top:10px;font-size:13px;color:var(--muted)}
+
+@media(max-width:600px){.cell{min-height:88px}.shift{font-size:11px;padding:6px 2px}.shift small{font-size:9px}.monthTitle{font-size:17px}}
+
+/* FIREHOUSE CALENDAR */
+.fire-calendar{border:4px solid #222;box-shadow:0 5px 0 #ffd21c,0 8px 18px #0003}
+.fire-calendar .dow{background:linear-gradient(#222,#444);color:#ffd21c;font-size:11px;letter-spacing:.5px}
+.fire-calendar .cell{background:#fafafa;min-height:118px;border-color:#ccc}
+.fire-calendar .cell:hover{background:#fff6d6;cursor:pointer}
+.fire-calendar .cell.today{box-shadow:inset 0 0 0 4px #ffd21c}
+.fire-calendar .num{font-size:13px}
+.shift{position:relative;overflow:hidden;border:2px solid #222;box-shadow:0 2px 0 #0003}
+.shift.day{background:linear-gradient(135deg,#d9ffd2,#8be67b);border-color:#16811a}
+.shift.night{background:linear-gradient(135deg,#d9f5ff,#72c9ef);border-color:#12608a}
+.shift .crewIcon{display:block;font-size:20px;line-height:20px;margin-bottom:2px}
+.shift .shiftName{font-size:12px;font-weight:900;letter-spacing:.4px}
+.shift small{font-size:9px}
+.offBadge{margin-top:9px;background:#eee;border:1px dashed #aaa;border-radius:8px;padding:5px;color:#777;font-size:10px;font-weight:800}
+.customShiftBox{font-size:10px!important;font-weight:900}
+.fire-strip{display:flex;gap:6px;overflow:hidden;padding:8px 12px;background:#222;color:#fff;font-size:11px;font-weight:900;letter-spacing:.4px}
+.fire-strip span{white-space:nowrap}
+.fire-calendar-wrap{position:relative}
+.fire-corner{position:absolute;right:5px;top:4px;z-index:1;font-size:17px;opacity:.8}
+
+/* BLACK + RED FIREHOUSE THEME */
+body{background:#0b0b0b;color:#f2f2f2}
+header{background:linear-gradient(135deg,#090909,#5c0000 70%,#a90000);border-bottom:3px solid #d71920}
+.controls{background:#111;border-bottom:1px solid #550000;color:#fff}
+.controls button{background:#1b1b1b;color:#fff;border-color:#5c1515}
+.card{background:#151515;color:#f2f2f2;border:1px solid #3a1111}
+.monthTitle{color:#fff}
+.fire-calendar-wrap{background:#090909;border:3px solid #8d0000;border-radius:12px;box-shadow:0 0 0 2px #160000,0 8px 25px #000}
+.fire-strip{background:#b00000;color:#fff;border-bottom:2px solid #ffcc00}
+.fire-calendar{background:#0b0b0b;border:0;box-shadow:none;margin:0}
+.fire-calendar .dow{background:#161616;color:#ffcc00;border-color:#4a1111}
+.fire-calendar .cell{background:#101010;color:#fff;border-color:#351010}
+.fire-calendar .cell:hover{background:#1d1111}
+.fire-calendar .cell.today{box-shadow:inset 0 0 0 3px #ffcc00;background:#1b0a0a}
+.fire-calendar .num{color:#ddd}
+.offBadge{background:#1a1a1a;border:1px dashed #5d5d5d;color:#888}
+.shift.day{background:linear-gradient(135deg,#ff3b30,#a80000);border:2px solid #ff6b60;color:#fff;box-shadow:0 2px 0 #000,0 0 8px #a0000033}
+.shift.night{background:linear-gradient(135deg,#5b0000,#210000);border:2px solid #d71920;color:#fff;box-shadow:0 2px 0 #000,0 0 8px #a0000033}
+.shift .crewIcon{filter:drop-shadow(0 1px 1px #000)}
+.legend{color:#ddd}
+.dot.day{background:#e31b23!important}.dot.night{background:#650000!important;border:1px solid #e31b23}
+.editBtn{background:#b00000;border:1px solid #ff4444;color:#fff}
+.modalBox{background:#111;color:#fff;border-top:3px solid #d71920}
+.modalDate{color:#aaa}
+.modalBox button{background:#1c1c1c;color:#fff;border-color:#555}
+.opt-comp{background:#5b4500!important}.opt-sick{background:#6d0b12!important}.opt-annual{background:#123b55!important}.opt-other{background:#3c185a!important}.opt-reset{background:#222!important}
+.customShiftBox{border-color:#ffcc00!important}
+.fire-corner{color:#ffcc00}
+
+/* MOBILE CALENDAR FIX — always keep all 7 days inside the screen */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+main{width:100%;max-width:100%;margin:0 auto}
+.fire-calendar-wrap{width:100%;max-width:100%;overflow:hidden;box-sizing:border-box}
+.fire-calendar{width:100%;max-width:100%;grid-template-columns:repeat(7,minmax(0,1fr));box-sizing:border-box}
+.fire-calendar .cell,.fire-calendar .dow{min-width:0;width:auto;overflow:hidden;box-sizing:border-box}
+.fire-calendar .shift{width:100%;box-sizing:border-box;overflow:hidden}
+.fire-calendar .shiftName{display:block;overflow-wrap:anywhere;word-break:normal}
+.fire-calendar .crewIcon{font-size:18px}
+@media(max-width:600px){
+  .fire-calendar .cell{min-height:108px;padding:5px 2px}
+  .fire-calendar .shift{font-size:10px;padding:5px 1px}
+  .fire-calendar .shiftName{font-size:10px;letter-spacing:0}
+  .fire-calendar .shift small{font-size:8px}
+  .fire-calendar .crewIcon{font-size:17px}
+  .fire-calendar .num{font-size:12px}
+  .fire-calendar .offBadge{font-size:9px;padding:5px 1px}
+}
+</style>
+</head>
+<body>
+<header><h1>🚒 FIREHOUSE ROSTER 🚒</h1><div class="sub">🔥 WATCH • RESPOND • RECOVER • REPEAT 🔥</div></header>
+<main>
+<div class="card next" id="next"></div>
+<div class="controls"><button onclick="move(-1)">‹</button><div class="monthTitle" id="title"></div><button onclick="move(1)">›</button></div>
+<div class="fire-calendar-wrap">
+      <div class="fire-corner">🚨</div>
+      <div class="fire-strip"><span>🚒 ENGINE READY</span><span>🔥 CREW ON WATCH</span><span>🧯 HOSE CHECK</span><span>🚨 STAY ALERT</span></div>
+      <div class="grid fire-calendar" id="calendar"></div>
+    </div>
+<div class="legend"><span><i class="dot day"></i>☀️ DAY WATCH</span><span><i class="dot night"></i>🌙 NIGHT WATCH</span><span>💤 OFF</span></div>
+<div class="card">
+  🧯 <strong>EDIT THE WATCH</strong>
+  <div style="font-size:13px;color:var(--muted);margin-top:4px">Tap a date to book leave, sick leave or other important crew business.</div>
+  <button class="editBtn" onclick="alert('Tap any date in the calendar to edit it.')">How to edit</button>
+</div>
+
+<div class="card" style="font-size:13px;color:var(--muted)">
+🚒 <strong>ROSTER ENGINE</strong><br>
+28 DAYS. ONE CREW. INFINITE ROSTER. 🚨
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeEdit()">
+  <div class="modalBox">
+    <h2 id="editTitle">Edit day</h2>
+    <div class="modalDate" id="editDate"></div>
+    <div class="options">
+      <button class="opt-comp" onclick="setCustom('Comp Leave')">Comp Leave</button>
+      <button class="opt-sick" onclick="setCustom('Sick Leave')">Sick Leave</button>
+      <button class="opt-annual" onclick="setCustom('Annual Leave')">Annual Leave</button>
+      <button class="opt-other" onclick="setCustom('Other')">Other</button>
+      <button class="opt-reset" onclick="setCustom(null)">Restore Roster</button>
+    </div>
+    <div class="customShift">Custom entries override the automatic roster for that date. Your underlying 4-week cycle remains unchanged.</div>
+    <button class="close" onclick="closeEdit()">Cancel</button>
+  </div>
+</div>
+<div class="card" style="text-align:center;background:linear-gradient(135deg,#050505,#520000);color:white;border:3px solid #d71920">
+      <div style="font-size:25px;letter-spacing:4px">🚒 🔥 🧯 🚨</div>
+      <div style="font-size:15px;font-weight:900">KEEP CALM AND CHECK THE ROSTER</div>
+      <div style="font-size:10px;margin-top:5px">BOOTS ON • HELMET READY • WATCH STARTS NOW</div>
+    </div>
+    </main>
+<script>
+const cycle = ["O","O","D","D","N","O","O","O","D","N","N","O","O","D","D","N","O","O","O","D","N","N","O","O","O","D","N","O"];
+// 1 Oct 2026 is cycle day 1 (off). Times are taken from the supplied roster screenshot.
+const anchor = new Date(2026,9,1);
+let view = new Date(2026,9,1);
+const names=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function clean(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function typeFor(d){
+  const diff=Math.floor((clean(d)-anchor)/86400000);
+  let i=((diff%28)+28)%28; return cycle[i];
+}
+function label(t){return t==="D"?"Day":t==="N"?"Night":"Off"}
+function times(t){return t==="D"?"09:00–18:00":t==="N"?"18:00–09:00":""}
+
+const STORAGE_KEY = "myWorkRosterCustomDays";
+function getCustomDays(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}catch(e){return {}} }
+function getCustom(k){ return getCustomDays()[k] || null }
+function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` }
+function customColor(v){
+  return v==="Comp Leave" ? "#ffd86b" :
+         v==="Sick Leave" ? "#ff9da8" :
+         v==="Annual Leave" ? "#8fd3ff" : "#c9a4ff";
+}
+let editingKey = null;
+function openEdit(key){
+  editingKey=key;
+  const d=new Date(key+"T12:00:00");
+  document.getElementById("editTitle").textContent="Edit "+d.toLocaleDateString("en-IE",{day:"numeric",month:"long",year:"numeric"});
+  document.getElementById("editDate").textContent=getCustom(key) ? "Current: "+getCustom(key) : "Automatic roster: "+label(typeFor(d));
+  document.getElementById("modal").classList.add("show");
+}
+function closeEdit(){document.getElementById("modal").classList.remove("show");editingKey=null}
+function setCustom(value){
+  if(!editingKey)return;
+  const days=getCustomDays();
+  if(value) days[editingKey]=value; else delete days[editingKey];
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(days));
+  closeEdit(); render();
+}
+
+function render(){
+  const y=view.getFullYear(),m=view.getMonth();
+  document.getElementById("title").textContent=view.toLocaleDateString("en-IE",{month:"long",year:"numeric"});
+  const cal=document.getElementById("calendar");
+  cal.innerHTML=names.map(x=>`<div class="dow">${x}</div>`).join("");
+  const first=new Date(y,m,1), start=first.getDay(), days=new Date(y,m+1,0).getDate();
+  for(let i=0;i<start;i++) cal.innerHTML+=`<div class="cell"></div>`;
+  const today=clean(new Date());
+  for(let n=1;n<=days;n++){
+    const d=new Date(y,m,n),t=typeFor(d),isToday=+d===+today;
+    const key = dateKey(d), custom = getCustom(key);
+    cal.innerHTML+=`<div class="cell ${isToday?"today":""}" onclick="openEdit('${key}')">
+      <div class="num">${n}</div>
+      ${custom ? `<div class="shift customShiftBox" style="background:${customColor(custom)}"><span class="crewIcon">📋</span><span class="shiftName">${custom}</span><small>EDITED</small></div>`
+      : t==="D" ? `<div class="shift day"><span class="crewIcon">☀️🚒</span><span class="shiftName">DAY WATCH</span><small>09:00–18:00</small></div>`
+      : t==="N" ? `<div class="shift night"><span class="crewIcon">🌙🚒</span><span class="shiftName">NIGHT WATCH</span><small>18:00–09:00</small></div>`
+      : `<div class="offBadge">💤 OFF WATCH</div>`}
+    </div>`;
+  }
+  renderNext();
+}
+function renderNext(){
+  let d=clean(new Date());
+  for(let i=0;i<60;i++){
+    const t=typeFor(d), custom=getCustom(dateKey(d));
+    if(t!=="O" && !custom){
+      document.getElementById("next").innerHTML=`<div><div style="font-size:12px;color:var(--muted)">NEXT SHIFT</div><strong>${d.toLocaleDateString("en-IE",{weekday:"short",day:"numeric",month:"short"})}</strong><div>${times(t)}</div></div><span class="pill ${t==="D"?"daypill":"nightpill"}">${label(t)}</span>`;
+      return;
+    }
+    d.setDate(d.getDate()+1);
+  }
+}
+function move(n){view=new Date(view.getFullYear(),view.getMonth()+n,1);render()}
+render();
+</script>
+</body></html>
